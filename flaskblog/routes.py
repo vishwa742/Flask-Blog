@@ -1,13 +1,14 @@
-from flask import render_template, url_for, flash, redirect, request, Response
+import os
+import secrets
+from PIL import Image
+from flask import render_template, url_for, flash, redirect, request
 from flaskblog import app, db, bcrypt
 from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
-from flaskblog import VideoCamera
-import cv2
+
 
 posts = [
-# Example post
     {
     'author': 'Vishwanath Ezhil',
     'title': 'Blog built on Flask',
@@ -23,16 +24,19 @@ posts = [
 
 ]
 
+
 @app.route("/")
 @app.route("/home")
 def home():
     return render_template('home.html', posts=posts)
 
+
 @app.route("/about")
 def about():
     return render_template('about.html', title='About')
 
-@app.route("/register", methods=['GET','POST'])
+
+@app.route("/register", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
@@ -42,11 +46,12 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        flash(f'Your account has been created! You are now able to log in','success')
+        flash('Your account has been created! You are now able to log in', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-@app.route("/login", methods=['GET','POST'])
+
+@app.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
@@ -58,19 +63,38 @@ def login():
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
-            flash('Login unsuccessful.', 'danger')
+            flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
+
 
 @app.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route("/account", methods=['GET','POST'])
+
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_fn
+
+
+@app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            current_user.image_file = picture_file
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
@@ -79,22 +103,6 @@ def account():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
-    image_file = url_for('static', filename='pics/' + current_user.image_file)
-    return render_template('account.html', title='Account', image_file = image_file, form = form)
-
-
-def gen(camera):
-    while True:
-        data = camera.get_frame()
-        frame = data[0]
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-
-@app.route('/video_feed')
-def video_feed():
-    return Response(gen(VideoCamera()),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
-#@app.route('/camera')
-#def video():
-#   return render_template('camera.html')
+    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    return render_template('account.html', title='Account',
+                           image_file=image_file, form=form)
