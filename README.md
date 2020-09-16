@@ -26,7 +26,7 @@ Email and password validation
 
 <img src="Screenshots/email.png" width="300">
 
-<img src="Screenshots/passowrd.png" width="300">
+<img src="Screenshots/password.png" width="300">
 
 ### Note: This project is still a work in progress and as I continue to work on it, I plan to improve the website and launch a live build.
 
