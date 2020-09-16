@@ -14,19 +14,19 @@ The website also includes email and password authentication for users, error han
 
 ### Project Screenshots
 
-<img src="Screenshots/home.png" width="300">
+<img src="Screenshots/home.png" width="500">
 
 The above image shows the home page for the web app where users can see the posts in the website and have the options to login or register
 
-<img src="Screenshots/login.png" width="300">
+<img src="Screenshots/login.png" width="500">
 
-<img src="Screenshots/register.png" width="300">
+<img src="Screenshots/register.png" width="500">
 
 Email and password validation
 
-<img src="Screenshots/email.png" width="300">
+<img src="Screenshots/email.png" width="500">
 
-<img src="Screenshots/password.png" width="300">
+<img src="Screenshots/password.png" width="500">
 
 ### Note: This project is still a work in progress and as I continue to work on it, I plan to improve the website and launch a live build.
 
